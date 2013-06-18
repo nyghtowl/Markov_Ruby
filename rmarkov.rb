@@ -14,7 +14,7 @@ consumer_secret = ENV['SECRET']
 access_token_key = ENV['TOKEN_KEY'] 
 access_token_secret = ['TOKEN_SECRET']
 
-def make_dict(astr, key_len)
+def make_dict(astr)
     '''
     takes in a string and returns dict of markov chains
     '''
@@ -32,7 +32,7 @@ def make_dict(astr, key_len)
     #loop through string and generate word dict
     word_list.each_with_index do |word, num|
 
-        if num < word_list.length - key_len-1
+        if num < word_list.length - 1
             key = "" #create placeholder for key value
             val = [] #create empty list to hold value
 
@@ -40,8 +40,8 @@ def make_dict(astr, key_len)
             key = word_list[num]
 
             #define value
-            if word_list[num+key_len+1]
-                val = word_list[num+key_len+1]
+            if word_list[num+1]
+                val = word_list[num+1]
             else
                 break
             end
@@ -50,10 +50,12 @@ def make_dict(astr, key_len)
             if word_dict.has_key? key
                 word_dict[key] << val
             else
-                word_dict[key] = [val]
+                if (key[0] =~ /[A-Z]{1}/) == nil
+                    word_dict[key] = [val]
+                end
             end
 
-            # create dict for uppercase
+            # create dict for capitalized words
             if (key[0] =~ /[A-Z]{1}/) != nil
                 if cap_dict.has_key? key
                     cap_dict[key] << val
@@ -86,38 +88,30 @@ def make_text(markov, cap_dict)
 
     #choose random key from cap dict model to start response
     start_key = cap_dict.keys[rand(cap_dict.length)]
-    print 1, start_key
 
     response_list << start_key << cap_dict[start_key].sample.to_s
-    
 
-    # add or to say or there is a value for the key
-
-    count = 0
-    len = 0 
-
+    # loop through markov dict to add keys
     begin
         x = response_list[-1]
         if markov[x]
             response_list << markov[x].sample
         else
             #if previous key has no value, choose a random next word
-            response_list << markov.keys[rand(markov[x].length)]
+            # print 2, markov.keys.sample
+            response_list << markov[markov.keys.sample]
         end
-        puts response_list.join('')
-        if response_list.join('').length != nil
-            len = response_list.join('').length
-        end
-        count += 1
-    end while count > 50
 
-    #pull key value and convert to string
-    # response = markov[start_key].join(" ") 
+        if response_list.join(' ').length != nil
+            response = response_list.join(' ')
+            len = response.length
+            # puts 3, response_list.join('').length
+        end
+
+    end while len < 120 
    
-    #lowercase all characters and uppercase the first?
-
-    #return the response with endmarks
-    # clean_result + endmark() + "\n" 
+    # return the response with endmarks
+    response + endmark() + "\n" 
 end
 
 # def tweet_post(randomtxt)
@@ -144,13 +138,13 @@ def main()
     '''
     pull in file, apply to dictionary and then pull random text
     '''
-    key_len = 1
+    # key_len = 1
    
     #read open and read file as a string 
     astr = open("sample.txt").read()
 
     #create markov model
-    markov_chain = make_dict(astr, key_len)
+    markov_chain = make_dict(astr)
 
     #generate random text to post
     random_txt = make_text(markov_chain[0], markov_chain[1])
