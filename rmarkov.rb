@@ -8,11 +8,8 @@ parse data from api
 post onto a page that lists a couple summary points
 
 '''
-
-consumer_key = ENV['KEY']
-consumer_secret = ENV['SECRET']
-access_token_key = ENV['TOKEN_KEY'] 
-access_token_secret = ['TOKEN_SECRET']
+require 'rubygems'
+require 'twitter'
 
 def make_dict(astr)
     '''
@@ -59,19 +56,22 @@ def make_dict(astr)
             if (key[0] =~ /[A-Z]{1}/) != nil
 
                 #remove characters from the string
-                chars = Regexp.escape(".?!")
-                val = val.gsub(/[#{chars}]/, "")
+                end_chars = Regexp.escape(".?!")
+                str_val = val.to_s
+                clean_val = str_val.gsub(/[#{end_chars}]/, "")
 
                 if cap_dict.has_key? key
-                    cap_dict[key] << val
+                    cap_dict[key] << clean_val
                 else
-                    cap_dict[key] = [val]
+                    cap_dict[key] = [clean_val]
                 end
             end
 
         end
 
     end
+    # puts cap_dict
+
     #return word dict as the model to pull random words
     [word_dict, cap_dict]
 
@@ -81,7 +81,9 @@ def sentence_start(cap_dict)
     '''
     choose random key from cap dict model to start response
     '''
-    cap_dict.keys[rand(cap_dict.length)]
+    start_key = cap_dict.keys[rand(cap_dict.length)]
+    next_key = cap_dict[start_key].sample.to_s
+    [start_key, next_key]
 end
 
 def endmark(word)
@@ -103,81 +105,81 @@ def make_text(markov, cap_dict)
     '''
     response_list = [] # list to capture values
 
-    #choose the start of the sentence
-    start_key = sentence_start(cap_dict)
-
-    response_list << start_key << cap_dict[start_key].sample.to_s
+    #start of the sentence
+    first = sentence_start(cap_dict)
+    response_list << first[0] << first[1]
 
     # build sentence response
     begin
+        #confirm last word doesn't have endmark
         x = response_list[-1]
-
         if endmark(x[-1]) != 0
             if markov[x]
                 response_list << markov[x].sample
             else
                 #if previous key has no value, choose a random capitalized word
                 response_list[-1] = endmark(response_list[-1])
-                response_list << sentence_start(cap_dict)
+                first = sentence_start(cap_dict)
+                response_list << first[0] << first[1]
+
             end
+        #if last word has endmark, start new sentence
         else
-            response_list << sentence_start(cap_dict)
+            first = sentence_start(cap_dict)
+            response_list << first[0] << first[1]
         end
 
         if response_list.join(' ').length != nil
             len = response_list.join(' ').length
         end
     
-    
     #change up length of response with limit to 120 char
     end while len < rand(120)  
     
     #add final endmark
     if endmark(response_list[-1]) != 0
-        response_list << endmark(response_list[-1])
+        response_list[-1] = endmark(response_list[-1])
     end
 
     # return the respons
-    response_list.join(' ') + "\n" 
+    response_list.join(' ') 
+    # + "\n" 
 end
 
-# def tweet_post(randomtxt)
+def tweet_post(random_txt)
     '''
     function to post random text on twitter
     '''
     #placeholder for twitter link
-    #if random_txt.length < 140
-        # Twitter.configure do |config|
-        #     config.consumer_key= , consumer_key = ENV['KEY']
-        #     config.consumer_secret= , consumer_secret = ENV['SECRET']
-        #     config.access_token_key= , access_token_key = ENV['TOKEN_KEY'] 
-        #     config.access_token_secret=  access_token_secret = ['TOKEN_SECRET']
-        # end
-        #Twitter.update(random_txt)
-    #else:
-        #random_txt = random_txt[0...139] + endmark()
-        #Twitter.update(random_txt)
+    if random_txt.length < 140
+        Twitter.configure do |config|
+            config.consumer_key = ENV['KEY']
+            config.consumer_secret = ENV['SECRET']
+            config.oauth_token = ENV['TOKEN_KEY'] 
+            config.oauth_token_secret =  ENV['TOKEN_SECRET']
+        end
+        Twitter.update(random_txt)
+    else
+        random_txt = random_txt[0...139] + endmark()
+        Twitter.update(random_txt)
 
-    #end
-
+    end
+end
 
 def main()
     '''
     pull in file, apply to dictionary and then pull random text
     '''
-    # key_len = 1
-   
+
     #read open and read file as a string 
     astr = open("raw_combo.txt").read()
 
     #create markov model
     markov_chain = make_dict(astr)
 
-    #generate random text to post
+    #generate random text and tweet
     random_txt = make_text(markov_chain[0], markov_chain[1])
-
-    # tweet_post(randomtxt)
-
+    tweet_post(random_txt)
     
     print random_txt #test and return value
 
