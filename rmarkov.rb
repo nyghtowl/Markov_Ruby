@@ -104,6 +104,7 @@ def make_text(markov, cap_dict)
             #if previous key has no value, choose a random next word
             response_list << markov.keys[rand(markov[x].length)]
         end
+        puts response_list.join('')
         if response_list.join('').length != nil
             len = response_list.join('').length
         end
