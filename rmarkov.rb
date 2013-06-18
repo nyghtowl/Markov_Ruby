@@ -9,7 +9,6 @@ post onto a page that lists a couple summary points
 
 '''
 
-
 consumer_key = ENV['KEY']
 consumer_secret = ENV['SECRET']
 access_token_key = ENV['TOKEN_KEY'] 
@@ -19,27 +18,27 @@ def make_dict(astr, key_len)
     '''
     takes in a string and returns dict of markov chains
     '''
+    #remove characters from the string
+    chars = Regexp.escape("()[]\'-_,:.\"*;?!")
+    clean_result = astr.gsub(/[#{chars}]/, "")
+
     #split the submitted text
-    word_list = astr.split()
+    word_list = clean_result.split()
+
     #create new dict to hold word pairings
-    word_dict = Hash.new
+    word_dict = Hash.new 
     cap_dict = Hash.new
 
     #loop through string and generate word dict
     word_list.each_with_index do |word, num|
 
         if num < word_list.length - key_len-1
-            key = "" #create empty list to hold key
+            key = "" #create placeholder for key value
             val = [] #create empty list to hold value
 
-            #create key
-            for i in (0...key_len) #3 dots to avoid exceeding index
-                if word_list[num+i] #if it exists
-                    key = word_list[num+i]
-                end
-            end
+            #define key
+            key = word_list[num]
 
-            # puts type(word_list[num+key_len+1])
             #define value
             if word_list[num+key_len+1]
                 val = word_list[num+key_len+1]
@@ -55,7 +54,7 @@ def make_dict(astr, key_len)
             end
 
             # create dict for uppercase
-            if (key =~ /[A-Z]{1}/) != nil
+            if (key[0] =~ /[A-Z]{1}/) != nil
                 if cap_dict.has_key? key
                     cap_dict[key] << val
                 else
@@ -83,18 +82,41 @@ def make_text(markov, cap_dict)
     '''
     take in the markov dict and return random text
     '''
+    response_list = [] # list to capture values
+
     #choose random key from cap dict model to start response
     start_key = cap_dict.keys[rand(cap_dict.length)]
-    
-    #pull key value and convert to string
-    response = markov[start_key].join(" ") 
+    print 1, start_key
 
-    #remove characters from the string
-    chars = Regexp.escape("()[]\'-_,:.\"*;?!")
-    clean_result = response.gsub(/[#{chars}]/, "")
+    response_list << start_key << cap_dict[start_key].sample.to_s
+    
+
+    # add or to say or there is a value for the key
+
+    count = 0
+    len = 0 
+
+    begin
+        x = response_list[-1]
+        if markov[x]
+            response_list << markov[x].sample
+        else
+            #if previous key has no value, choose a random next word
+            response_list << markov.keys[rand(markov[x].length)]
+        end
+        if response_list.join('').length != nil
+            len = response_list.join('').length
+        end
+        count += 1
+    end while count > 50
+
+    #pull key value and convert to string
+    # response = markov[start_key].join(" ") 
    
-    #return the response with endmarsk
-    clean_result + endmark() + "\n" 
+    #lowercase all characters and uppercase the first?
+
+    #return the response with endmarks
+    # clean_result + endmark() + "\n" 
 end
 
 # def tweet_post(randomtxt)
