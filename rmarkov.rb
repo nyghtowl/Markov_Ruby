@@ -19,7 +19,7 @@ def make_dict(astr)
     takes in a string and returns dict of markov chains
     '''
     #remove characters from the string
-    chars = Regexp.escape("()[]\'-_,:.\"*;?!")
+    chars = Regexp.escape("()[]-_,:\"*;")
     clean_result = astr.gsub(/[#{chars}]/, "")
 
     #split the submitted text
@@ -46,7 +46,7 @@ def make_dict(astr)
                 break
             end
 
-            #assign key value pair
+            #assign key value pair for all words not capitalized
             if word_dict.has_key? key
                 word_dict[key] << val
             else
@@ -57,6 +57,11 @@ def make_dict(astr)
 
             # create dict for capitalized words
             if (key[0] =~ /[A-Z]{1}/) != nil
+
+                #remove characters from the string
+                chars = Regexp.escape(".?!")
+                val = val.gsub(/[#{chars}]/, "")
+
                 if cap_dict.has_key? key
                     cap_dict[key] << val
                 else
@@ -72,12 +77,24 @@ def make_dict(astr)
 
 end
 
-def endmark()
+def sentence_start(cap_dict)
+    '''
+    choose random key from cap dict model to start response
+    '''
+    cap_dict.keys[rand(cap_dict.length)]
+end
+
+def endmark(word)
     '''
     generate random end marks to apply to sentence
     '''
+    # check for endmark 
     endmarks = [".", "?", "!"]
-    endmarks[rand(endmarks.length)]
+    if endmarks.include?(word[-1])
+        return 0
+    else    
+        return word + endmarks[rand(endmarks.length)]
+    end
 end
 
 def make_text(markov, cap_dict)
@@ -86,32 +103,42 @@ def make_text(markov, cap_dict)
     '''
     response_list = [] # list to capture values
 
-    #choose random key from cap dict model to start response
-    start_key = cap_dict.keys[rand(cap_dict.length)]
+    #choose the start of the sentence
+    start_key = sentence_start(cap_dict)
 
     response_list << start_key << cap_dict[start_key].sample.to_s
 
-    # loop through markov dict to add keys
+    # build sentence response
     begin
         x = response_list[-1]
-        if markov[x]
-            response_list << markov[x].sample
+
+        if endmark(x[-1]) != 0
+            if markov[x]
+                response_list << markov[x].sample
+            else
+                #if previous key has no value, choose a random capitalized word
+                response_list[-1] = endmark(response_list[-1])
+                response_list << sentence_start(cap_dict)
+            end
         else
-            #if previous key has no value, choose a random next word
-            # print 2, markov.keys.sample
-            response_list << markov[markov.keys.sample]
+            response_list << sentence_start(cap_dict)
         end
 
         if response_list.join(' ').length != nil
-            response = response_list.join(' ')
-            len = response.length
-            # puts 3, response_list.join('').length
+            len = response_list.join(' ').length
         end
+    
+    
+    #change up length of response with limit to 120 char
+    end while len < rand(120)  
+    
+    #add final endmark
+    if endmark(response_list[-1]) != 0
+        response_list << endmark(response_list[-1])
+    end
 
-    end while len < 120 
-   
-    # return the response with endmarks
-    response + endmark() + "\n" 
+    # return the respons
+    response_list.join(' ') + "\n" 
 end
 
 # def tweet_post(randomtxt)
@@ -141,7 +168,7 @@ def main()
     # key_len = 1
    
     #read open and read file as a string 
-    astr = open("sample.txt").read()
+    astr = open("raw_combo.txt").read()
 
     #create markov model
     markov_chain = make_dict(astr)
