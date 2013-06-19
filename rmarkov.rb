@@ -179,7 +179,7 @@ def main()
 
     #generate random text and tweet
     random_txt = make_text(markov_chain[0], markov_chain[1])
-    tweet_post(random_txt)
+    # tweet_post(random_txt)
     
     print random_txt #test and return value
 
