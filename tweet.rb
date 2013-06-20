@@ -9,8 +9,15 @@ def sentence_start(cap_dict)
     '''
     choose random key from cap dict model to start response
     '''
-    start_key = cap_dict.keys[rand(cap_dict.length)]
-    next_key = cap_dict[start_key].sample.to_s
+
+    #random.choice(l) -> l.sample
+    start_key = cap_dict.keys.sample.to_s
+    next_key = nil
+
+    while next_key.nil? do
+        next_key = cap_dict[start_key].sample.to_s
+    end
+
     [start_key, next_key]
 end
 
@@ -21,6 +28,9 @@ def endmark(word)
     '''
     # check for endmark 
     endmarks = [".", "?", "!"]
+    if word.nil?
+        puts "<<<<<<<<<<<<<<<<<<<<<<"
+    end
     if endmarks.include?(word[-1])
         return nil
     else    
@@ -43,7 +53,7 @@ def make_text(markov, cap_dict)
         #confirm last word doesn't have endmark
         last_word = response_list[-1]
 
-        if endmark(last_word[-1]) != nil
+        if endmark(last_word) != nil
 
             if markov[last_word]
                 response_list << markov[last_word].sample
@@ -66,7 +76,7 @@ def make_text(markov, cap_dict)
         end
     
     #change up length of response with limit to 120 char
-    end while len < rand(120)  
+    end while len < rand(140)  
     
     #add final endmark
     if endmark(response_list[-1]) != 0
@@ -75,24 +85,23 @@ def make_text(markov, cap_dict)
 
     # return the respons
     response_list.join(' ') 
-    
+
 end
 
 def tweet_post(random_txt)
     '''
     function to post random text on twitter
     '''
+    #pull Twitter keys
+    Twitter.configure do |config|
+        config.consumer_key = ENV['KEY']
+        config.consumer_secret = ENV['SECRET']
+        config.oauth_token = ENV['TOKEN_KEY'] 
+        config.oauth_token_secret =  ENV['TOKEN_SECRET']
+    end
+
+    #submits tweet
     if random_txt.length < 140
-
-        #pull Twitter keys
-        Twitter.configure do |config|
-            config.consumer_key = ENV['KEY']
-            config.consumer_secret = ENV['SECRET']
-            config.oauth_token = ENV['TOKEN_KEY'] 
-            config.oauth_token_secret =  ENV['TOKEN_SECRET']
-        end
-
-        #submits tweet
         Twitter.update(random_txt)
     else
         #cuts off end of string and submits tweet

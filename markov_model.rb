@@ -26,52 +26,32 @@ def make_dict(astr)
     word_list = clean_string(astr, 1).split
 
     #create new dict to hold word pairings
-    word_dict = Hash.new 
-    cap_dict = Hash.new
+    # a: word_dict = Hash.new
+    word_dict = Hash.new { |hash, key| hash[key] = [] }
+    cap_dict = Hash.new { |hash, key| hash[key] = [] }
 
     #loop through string and generate word dict
     word_list.each_with_index do |word, num|
+        next if num > word_list.length - 1
 
-        if num < word_list.length - 1
-            key = "" #create placeholder for key value
-            val = [] #create empty list to hold value
+        key = word
 
-            #define key
-            key = word_list[num]
+        val = word_list[num+1]
 
-            #define value
-            if word_list[num+1]
-                val = word_list[num+1]
-            else
-                break
-            end
+        next if val.nil?
 
-            #assign key value pair for all words not capitalized
-            if word_dict.has_key? key
-                word_dict[key] << val
-            else
-                if (key[0] =~ /[A-Z]{1}/) == nil
-                    word_dict[key] = [val]
-                end
-            end
-
-            # create dict for capitalized words
-            if (key[0] =~ /[A-Z]{1}/) != nil
-
-                #clean val of characters
-                clean_val = clean_string(val.to_s, 0)
-
-                if cap_dict.has_key? key
-                    cap_dict[key] << clean_val
-                else
-                    cap_dict[key] = [clean_val]
-                end
-            end
-
+        #assign key value pair for all words not capitalized
+        if (key[0] =~ /[A-Z]{1}/) == nil
+            #a: word_dict[key] ||= []
+            word_dict[key] << val
+        else # assign to cap dict
+            #clean val of characters
+            clean_val = clean_string(val.to_s, 0)
+            #a: cap_dict[key] ||= []
+            
+            cap_dict[key] << clean_val
         end
-
     end
-    # puts cap_dict
 
     #return word dict as the model to pull random words
     [word_dict, cap_dict]
