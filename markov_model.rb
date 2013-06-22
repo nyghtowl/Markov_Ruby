@@ -27,8 +27,8 @@ def make_dict(astr)
 
     #create new dict to hold word pairings
     # a: word_dict = Hash.new
-    word_dict = Hash.new { |hash, key| hash[key] = [] }
-    cap_dict = Hash.new { |hash, key| hash[key] = [] }
+    lower_hash = Hash.new { |hash, key| hash[key] = [] }
+    cap_hash = Hash.new { |hash, key| hash[key] = [] }
 
     #loop through string and generate word dict
     word_list.each_with_index do |word, num|
@@ -40,20 +40,20 @@ def make_dict(astr)
 
         next if val.nil?
 
-        #assign key value pair for all words not capitalized
+        #assign key value pair to either lower or cap hash
         if (key[0] =~ /[A-Z]{1}/) == nil
-            #a: word_dict[key] ||= []
-            word_dict[key] << val
-        else # assign to cap dict
-            #clean val of characters
-            clean_val = clean_string(val.to_s, 0)
-            #a: cap_dict[key] ||= []
+            lower_hash[key] << val
+        else
+            #strip end marks off capital words
+            clean_key = clean_string(key.to_s, 0)
             
-            cap_dict[key] << clean_val
+            cap_hash[clean_key] << val
         end
     end
 
+    print word_dict, cap_dict
     #return word dict as the model to pull random words
     [word_dict, cap_dict]
+
 
 end
