@@ -23,7 +23,7 @@ def make_dict(astr)
     takes in a string and returns dict of markov chains
     '''
     #clean string of characters and change to list
-    word_list = clean_string(astr, 1).split
+    word_array = clean_string(astr, 1).split
 
     #create new dict to hold word pairings
     # a: word_dict = Hash.new
@@ -31,12 +31,12 @@ def make_dict(astr)
     cap_hash = Hash.new { |hash, key| hash[key] = [] }
 
     #loop through string and generate word dict
-    word_list.each_with_index do |word, num|
-        next if num > word_list.length - 1
+    word_array.each_with_index do |word, num|
+        next if num > word_array.length - 1
 
         key = word
 
-        val = word_list[num+1]
+        val = word_array[num+1]
 
         next if val.nil?
 
@@ -51,9 +51,9 @@ def make_dict(astr)
         end
     end
 
-    print word_dict, cap_dict
-    #return word dict as the model to pull random words
-    [word_dict, cap_dict]
+    print lower_hash, cap_hash
+    #return two dictionaries to pull words
+    [lower_hash, cap_hash]
 
 
 end
