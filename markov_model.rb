@@ -51,7 +51,6 @@ def make_dict(astr)
         end
     end
 
-    print lower_hash, cap_hash
     #return two dictionaries to pull words
     [lower_hash, cap_hash]
 

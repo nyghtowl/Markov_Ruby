@@ -5,18 +5,28 @@ require 'rubygems'
 require 'twitter'
 
 
-def sentence_start(cap_dict)
+def sentence_start(cap_hash)
     '''
-    choose random key from cap dict model to start response
+    choose random key from cap hash model to start response
     '''
 
     #random.choice(l) -> l.sample
-    start_key = cap_dict.keys.sample.to_s
-    next_key = nil
+    # start_key = cap_hash.keys.sample.to_s
+    # next_key = nil
 
-    while next_key.nil? do
-        next_key = cap_dict[start_key].sample.to_s
+    # while next_key.nil? do
+    #     next_key = cap_hash[start_key].sample.to_s
+    # end
+
+    start_key = cap_hash.keys.sample.to_s
+    
+    if cap_hash[start_key]
+        next_key = cap_hash[start_key].sample.to_s
+    else
+        next_key = []
     end
+
+# if there is no value after capital - need to pull another random word into the sentence
 
     [start_key, next_key]
 end
@@ -28,24 +38,22 @@ def endmark(word)
     '''
     # check for endmark 
     endmarks = [".", "?", "!"]
-    if word.nil?
-        puts "<<<<<<<<<<<<<<<<<<<<<<"
-    end
+
     if endmarks.include?(word[-1])
-        return nil
+        return 0
     else    
-        return word + endmarks[rand(endmarks.length)]
+        return word + endmarks[rand(endmarks.length)] #apply random endmark
     end
 end
 
-def make_text(markov, cap_dict)
+def make_text(markov, cap_hash)
     '''
-    take in the markov dict and return random text
+    take in the markov hash and return random text
     '''
     response_list = [] # list to capture values
 
     #start of the sentence
-    first = sentence_start(cap_dict)
+    first = sentence_start(cap_hash)
     response_list << first[0] << first[1]
 
     # build sentence response
@@ -53,21 +61,21 @@ def make_text(markov, cap_dict)
         #confirm last word doesn't have endmark
         last_word = response_list[-1]
 
-        if endmark(last_word) != nil
+        if endmark(last_word) != 0
 
             if markov[last_word]
                 response_list << markov[last_word].sample
             else
                 #if previous key has no value, choose a random capitalized word
                 response_list[-1] = endmark(response_list[-1])
-                first = sentence_start(cap_dict)
+                first = sentence_start(cap_hash)
                 response_list << first[0] << first[1]
 
             end
 
         #if last word has endmark, start new sentence
         else
-            first = sentence_start(cap_dict)
+            first = sentence_start(cap_hash)
             response_list << first[0] << first[1]
         end
 
