@@ -5,94 +5,148 @@ require 'rubygems'
 require 'twitter'
 
 
-def sentence_start(cap_hash)
+def sentence_start(hash)
     '''
     choose random key from cap hash model to start response
     '''
+    hash.keys.sample
 
-    #random.choice(l) -> l.sample
-    # start_key = cap_hash.keys.sample.to_s
-    # next_key = nil
-
-    # while next_key.nil? do
-    #     next_key = cap_hash[start_key].sample.to_s
-    # end
-
-    start_key = cap_hash.keys.sample.to_s
-    
-    if cap_hash[start_key]
-        next_key = cap_hash[start_key].sample.to_s
-    else
-        next_key = []
-    end
-
-# if there is no value after capital - need to pull another random word into the sentence
-
-    [start_key, next_key]
 end
 
+def check_cap(word)
+    '''
+    check if word is capitalized to determine which hash to use
+    '''
+    (word[0] =~ /[A-Z]{1}/)
+end
 
-def endmark(word)
+def word_sample(val, hash)
     '''
-    generate random end marks to apply to sentence
+    pull word sample from submitted hash
     '''
-    # check for endmark 
+    hash[val].sample
+
+
+end
+
+def val_exists(val, hash)
+    '''
+    checks if there is a matching value to the key
+    if not then requires an endmark to be added to the last value
+    '''
+
+    if hash[val] != []
+        next_word = word_sample(val, hash)
+        end_sent = 'no'
+    else
+        next_word = sentence_start(hash)
+        end_sent = 'yes'
+    end
+
+    [next_word, end_sent]
+
+end
+
+def check_endmark(word)
+    '''
+    check if endmarks exist end of sentence
+    '''
     endmarks = [".", "?", "!"]
 
     if endmarks.include?(word[-1])
-        return 0
+         result = 'yes'
     else    
-        return word + endmarks[rand(endmarks.length)] #apply random endmark
+         result = 'no'
     end
+
+    result
 end
 
-def make_text(markov, cap_hash)
+def add_endmark()
     '''
-    take in the markov hash and return random text
+    generate random end marks to apply to sentence
     '''
-    response_list = [] # list to capture values
+    endmarks = [".", "?", "!"]
 
-    #start of the sentence
-    first = sentence_start(cap_hash)
-    response_list << first[0] << first[1]
+    endmarks[rand(endmarks.length)]
+end
+
+def make_text(lower_hash, cap_hash)
+    '''
+    take in the lower_hash hash and return random text
+    '''
+    result_array = Array.new([]) # list to capture values
+    len = rand(140)  
 
     # build sentence response
     begin
-        #confirm last word doesn't have endmark
-        last_word = response_list[-1]
 
-        if endmark(last_word) != 0
+        #add first capital word of a sentence
+        if result_array == []
+            result_array << sentence_start(cap_hash)
+        end
 
-            if markov[last_word]
-                response_list << markov[last_word].sample
-            else
-                #if previous key has no value, choose a random capitalized word
-                response_list[-1] = endmark(response_list[-1])
-                first = sentence_start(cap_hash)
-                response_list << first[0] << first[1]
+        # print 1, result_array
+        # puts ""
 
+        #adds from capital hash if there's an endmark or last result word is capital
+        if check_endmark(result_array[-1]) == 'yes' or check_cap(result_array[-1]) != nil
+
+            #add next_word - confirm val exists or use cap
+            next_word = val_exists(result_array[-1], cap_hash)
+
+            # print 1.2, result_array[-1]
+            # puts ""
+
+            # print 1.3, cap_hash[result_array[-1]]
+            # puts ""
+
+            # print 1.4, next_word
+            # puts ""
+
+            # print 1.5, check_endmark(result_array[-1])
+            # puts ""
+
+            if next_word[1] == 'yes' and check_endmark(result_array[-1]) == 'no'
+                result_array[-1][-1] += add_endmark()
+                # print 2, result_array
+                # puts ""
             end
 
-        #if last word has endmark, start new sentence
+            result_array << next_word[0]
+            # print 3, next_word[0]
+            # puts ""
+
+        #adds from lower case hash otherwise
         else
-            first = sentence_start(cap_hash)
-            response_list << first[0] << first[1]
+
+            next_word = val_exists(result_array[-1], lower_hash)
+
+            if next_word[1] == 'yes' and check_endmark(result_array[-1]) == 'no'
+                result_array[-1][-1] += add_endmark()
+                print 4, result_array
+                puts ""
+            end
+
+            result_array << next_word[0]
+
+            # print 5, result_array
+            # puts ""
         end
 
-        if response_list.join(' ').length != nil
-            len = response_list.join(' ').length
-        end
+
+    #randomize length of sentence
+    end while result_array.join(' ').length < 140
     
-    #change up length of response with limit to 120 char
-    end while len < rand(140)  
-    
-    #add final endmark
-    if endmark(response_list[-1]) != 0
-        response_list[-1] = endmark(response_list[-1])
+    # print 6, result_array
+
+    # add final endmark
+    if check_endmark(result_array[-1]) == 'no'
+        result_array[-1][-1] += add_endmark()
     end
 
     # return the respons
-    response_list.join(' ') 
+    result_array.join(' ') 
 
 end
 
@@ -113,8 +167,9 @@ def tweet_post(random_txt)
         Twitter.update(random_txt)
     else
         #cuts off end of string and submits tweet
-        random_txt = random_txt[0...139] + endmark()
+        # random_txt = random_txt[0...139] + endmark()
         Twitter.update(random_txt)
 
     end
+
 end

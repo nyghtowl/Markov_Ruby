@@ -1,6 +1,14 @@
 
 '''
 make markov chain 
+
+create two hashes to hold markov chains
+upper case keys hash
+lower case keys hash 
+both can hold values with upper and lower
+values stripped of all characters except end characters
+keys stripped of all characters
+
 '''
 
 def clean_string(astr, first)
@@ -25,10 +33,9 @@ def make_dict(astr)
     #clean string of characters and change to list
     word_array = clean_string(astr, 1).split
 
-    #create new dict to hold word pairings
-    # a: word_dict = Hash.new
-    lower_hash = Hash.new { |hash, key| hash[key] = [] }
-    cap_hash = Hash.new { |hash, key| hash[key] = [] }
+    #create hash with word pairings
+    lower_hash = Hash.new { |hash, key| hash[key] = [] } #lower case keys
+    cap_hash = Hash.new { |hash, key| hash[key] = [] } #upper case keys
 
     #loop through string and generate word dict
     word_array.each_with_index do |word, num|
