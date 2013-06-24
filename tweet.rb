@@ -1,5 +1,6 @@
 '''
 generate random text to tweet
+
 '''
 require 'rubygems'
 require 'twitter'
@@ -40,6 +41,10 @@ def val_exists(val, hash)
         end_sent = 'no'
     else
         next_word = sentence_start(hash)
+        #capitalize word when it pulls from lower_hash to start sentence
+        unless check_cap(next_word)
+            next_word = next_word.capitalize
+        end
         end_sent = 'yes'
     end
 
@@ -136,13 +141,20 @@ def make_text(lower_hash, cap_hash)
 
 
     #randomize length of sentence
-    end while result_array.join(' ').length < 140
+    end while result_array.join(' ').length < rand(140)
     
     # print 6, result_array
 
+    last_word = result_array[-1]
+
+    #if word is a frozen key, duplicate to unfreeze
+    if last_word.frozen? 
+        last_word = last_word.dup
+    end
+
     # add final endmark
-    if check_endmark(result_array[-1]) == 'no'
-        result_array[-1][-1] += add_endmark()
+    if check_endmark(last_word) == 'no'
+        last_word[-1] += add_endmark()
     end
 
     # return the respons
@@ -162,14 +174,13 @@ def tweet_post(random_txt)
         config.oauth_token_secret =  ENV['TOKEN_SECRET']
     end
 
-    #submits tweet
-    if random_txt.length < 140
-        Twitter.update(random_txt)
-    else
-        #cuts off end of string and submits tweet
-        # random_txt = random_txt[0...139] + endmark()
-        Twitter.update(random_txt)
-
+    #cuts off end of string if too long
+    if random_txt.length > 140
+        random_txt = random_txt[0...139] + endmark()
     end
+
+    #submits tweet
+    Twitter.update(random_txt)
+
 
 end
