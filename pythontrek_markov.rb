@@ -41,17 +41,19 @@ def tweet_post(random_txt)
         random_txt = random_txt[0...139] + endmark()
     end
 
+# class to pull api info on rate limit
+
     #submits tweet
     Twitter.update(random_txt)
 
 end
 
-
+# This is the revised section that include markov_model2 and tweet2
 def main_object()
     sample_text = open("raw_combo.txt").read()
     generator = TwitterMarkov.new sample_text
     random_txt = generator.generate()
-    puts random_txt
+    print random_txt
     tweet_post(random_txt)
 end
 
