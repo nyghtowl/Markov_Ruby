@@ -62,15 +62,24 @@ class Markov
         message << head
         while !done?(message) do
             source = pick_source(head)
-            choice = source[head].sample
+            choice = source[head].sample # need to strip end mark on key for cap to pull value
+
             if choice.nil?
                 choice = pick_source(head).keys.sample
             end
+
             message << choice
             head = choice
         end
+       
+        message = message.join(" ") + END_MARKS.sample
 
-        message.join(" ") + END_MARKS.sample
+        if message.length > 140
+            message = message[0...139] + END_MARKS.sample
+        else
+            message
+        end
+
     end
 
     def done?(message)
