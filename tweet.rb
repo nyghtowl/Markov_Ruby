@@ -57,14 +57,7 @@ def check_endmark(word)
     check if endmarks exist end of sentence
     '''
     endmarks = [".", "?", "!"]
-
-    if endmarks.include?(word[-1])
-         result = 'yes'
-    else    
-         result = 'no'
-    end
-
-    result
+    endmarks.include?(word[-1])
 end
 
 def add_endmark()
@@ -95,10 +88,10 @@ def make_text(lower_hash, cap_hash)
         # puts ""
 
         #adds from capital hash if there's an endmark or last result word is capital
-        if check_endmark(result_array[-1]) == 'yes' or check_cap(result_array[-1]) != nil
+        if check_endmark(result_array[-1]) or check_cap(result_array[-1]) != nil
 
             #add next_word - confirm val exists or use cap
-            next_word = val_exists(result_array[-1], cap_hash)
+            next_word, end_sent = val_exists(result_array[-1], cap_hash)
 
             # print 1.2, result_array[-1]
             # puts ""
@@ -112,28 +105,28 @@ def make_text(lower_hash, cap_hash)
             # print 1.5, check_endmark(result_array[-1])
             # puts ""
 
-            if next_word[1] == 'yes' and check_endmark(result_array[-1]) == 'no'
+            if end_sent == 'yes' and !check_endmark(result_array[-1])
                 result_array[-1][-1] += add_endmark()
                 # print 2, result_array
                 # puts ""
             end
 
-            result_array << next_word[0]
+            result_array << next_word
             # print 3, next_word[0]
             # puts ""
 
         #adds from lower case hash otherwise
         else
 
-            next_word = val_exists(result_array[-1], lower_hash)
+            next_word, end_sent = val_exists(result_array[-1], lower_hash)
 
-            if next_word[1] == 'yes' and check_endmark(result_array[-1]) == 'no'
+            if end_sent == 'yes' and !check_endmark(result_array[-1])
                 result_array[-1][-1] += add_endmark()
                 print 4, result_array
                 puts ""
             end
 
-            result_array << next_word[0]
+            result_array << next_word
 
             # print 5, result_array
             # puts ""
@@ -153,7 +146,7 @@ def make_text(lower_hash, cap_hash)
     end
 
     # add final endmark
-    if check_endmark(last_word) == 'no'
+    if !check_endmark(last_word)
         last_word[-1] += add_endmark()
     end
 
